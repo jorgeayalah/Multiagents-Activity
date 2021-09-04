@@ -29,6 +29,14 @@ class StockModel(ap.Model):
         self.robots.setPos(self.grid)
         self.boxes.setPos(self.grid)
 
+        self.diagonal = int(math.sqrt(math.pow(self.p.size, 2)))
+        self.robots.setDiagonal(self.diagonal)
+        self.BRrouter = {}
+
+        for robot in self.robots:
+            robot.setGoing(True)
+            self.assignTarget(robot)
+
     def distanceBetween(self, point, point1):
         return math.sqrt(math.pow(point[0]-point1[0], 2) + math.pow(point[1] - point1[1], 2))
     
@@ -36,25 +44,32 @@ class StockModel(ap.Model):
         if not robot.isGoing():
             robot.setTarget(self.goal)
             return
+        minDist = self.diagonal
+        boxTarget = None
+        boxposTarget = None
         for box in self.boxes:
-            robot.setTarget(box.getPos())
+            if box.id in self.BRrouter or box.condition == 1:
+                continue
+            boxpos = self.grid.positions[box]
+            distance = self.distanceBetween(boxpos, robot.getPos())
+            if distance < minDist:
+                boxTarget = box
+                boxposTarget = boxpos
+                minDist = distance
+        if boxTarget != None:
+            robot.setTarget(boxposTarget)
+            self.BRrouter[boxTarget.id] = robot
 
     def step(self):
-        # for robot in self.robots:
-        #     if(robot.isGoing()):
-        #         self.assignTarget(robot)
-        #     else:
-        #         rbGoalDist = abs(self.distanceBetween(robot.getPos(), self.goal))
-        #         if (rbGoalDist <= 1):
-        #             self.goal = [self.goal[0]+1, self.goal[1]+1]
-        #             robot.setGoing(True)
-        #             self.assignTarget(robot)
         for robot in self.robots:
             robot.step()
             if (robot.isGoing()):
                 distance = self.distanceBetween(robot.getPos(), robot.getTarget())
                 if abs(distance) <= 1:
                     box = self.grid.agents[robot.getTarget()].to_list()
+                    for element in box:
+                        if element.type == "box":
+                            box = element
                     robot.increaseBoxQty()
                     self.assignTarget(robot)
             else:

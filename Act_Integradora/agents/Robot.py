@@ -24,6 +24,15 @@ class Robot(ap.Agent):
 
     def getTarget(self):
         return self.target
+    
+    def setDiagonal(self, diagonal):
+        self.diagonal = diagonal
+    
+    def getDiagonal(self):
+        return self.diagonal
+
+    def setBRrouter(self, BRrouter: dict):
+        self.BRrouter = BRrouter
 
     def increaseBoxQty(self):
         self.boxQty += 1
@@ -41,8 +50,8 @@ class Robot(ap.Agent):
         return self.going
 
     def getVector(self):
-        xDelta = self.target[1] - self.position[1]
-        yDelta = self.target[0] - self.position[0]
+        xDelta = self.target[1] - self.pos[1]
+        yDelta = self.target[0] - self.pos[0]
         if xDelta == 0 and yDelta == 0:
             return (0, 0)
         vector = np.array([yDelta, xDelta])
@@ -57,4 +66,4 @@ class Robot(ap.Agent):
         if self.going:
             movementVec = self.getVector()
             self.grid.move_by(self, movementVec)
-            self.position = self.grid.positions[self]
+            self.pos = self.grid.positions[self]
